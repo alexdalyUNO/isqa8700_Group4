@@ -1,0 +1,6 @@
+"0","dat = read.csv(""heart_2020_cleaned.csv"")"
+"0","#dat = dat %>% mutate_if(is.character, factor)"
+"0","dat <- dat[!duplicated(dat), ]"
+"0","dat <- subset(dat, select = -c(Race))"
+"0","dat$BMI <- cut(dat$BMI, breaks=c(0, 18.5, 25, 30, +Inf), "
+"0","            labels=c(""Underweight"", ""Normal"", ""Overweight"", ""Obese""))"
