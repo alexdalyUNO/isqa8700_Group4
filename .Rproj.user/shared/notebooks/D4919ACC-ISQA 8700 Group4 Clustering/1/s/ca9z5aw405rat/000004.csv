@@ -1,4 +1,0 @@
-"0","cleanData <- dat"
-"0","#cleanData <- subset(dat, select = -c(AlcoholDrinking))"
-"0","trainingSet <- cleanData %>% filter(row(cleanData) >= 1 & row(cleanData) <= 200000)"
-"0","testingSet <- cleanData %>% filter(row(cleanData) >= 200001 & row(cleanData) <= 301717)"

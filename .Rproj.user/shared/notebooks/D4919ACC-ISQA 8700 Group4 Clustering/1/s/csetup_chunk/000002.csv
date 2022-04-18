@@ -2,3 +2,6 @@
 "0","library(dplyr)"
 "0","library(readxl)"
 "0","library(factoextra)"
+"0","library(tree)"
+"0","library(rpart)"
+"0","library(rpart.plot)"
