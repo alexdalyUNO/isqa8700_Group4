@@ -1,0 +1,2 @@
+"0","set.seed(100)"
+"0","clusters <- kmeans(x=clusteringTrainingSet, centers=2, nstart = 10000)"

@@ -1,0 +1,206 @@
+---
+title: "ISQA 8700 Group4 Clustering"
+author: "Alex Daly"
+date: "4/3/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(readxl)
+library(factoextra)
+library(tree)
+library(rpart)
+library(rpart.plot)
+```
+
+```{r dataPrep, echo=TRUE}
+dat = read.csv("heart_2020_cleaned.csv")
+#dat = dat %>% mutate_if(is.character, factor)
+dat <- dat[!duplicated(dat), ]
+#dat <- subset(dat, select = -c(Race))
+dat$BMI <- cut(dat$BMI, breaks=c(0, 18.5, 25, 30, +Inf), 
+            labels=c("Underweight", "Normal", "Overweight", "Obese"))
+cleanDataClassifying <- dat
+```
+
+```{r dataClean, echo=TRUE}
+dat$HeartDisease <- ifelse(dat$HeartDisease == "No", 0, dat$HeartDisease)
+dat$HeartDisease <- ifelse(dat$HeartDisease == "Yes", 1, dat$HeartDisease)
+
+dat$BMI <- ifelse(dat$BMI == "Underweight", 0, as.character(dat$BMI))
+dat$BMI <- ifelse(dat$BMI == "Normal", 1, as.character(dat$BMI))
+dat$BMI <- ifelse(dat$BMI == "Overweight", 2, as.character(dat$BMI))
+dat$BMI <- ifelse(dat$BMI == "Obese", 3, as.character(dat$BMI))
+
+dat$Smoking <- ifelse(dat$Smoking == "No", 0, dat$Smoking)
+dat$Smoking <- ifelse(dat$Smoking == "Yes", 1, dat$Smoking)
+
+dat$AlcoholDrinking <- ifelse(dat$AlcoholDrinking == "No", 0, dat$AlcoholDrinking)
+dat$AlcoholDrinking <- ifelse(dat$AlcoholDrinking == "Yes", 1, dat$AlcoholDrinking)
+
+dat$Stroke <- ifelse(dat$Stroke == "No", 0, dat$Stroke)
+dat$Stroke <- ifelse(dat$Stroke == "Yes", 1, dat$Stroke)
+
+dat$DiffWalking <- ifelse(dat$DiffWalking == "No", 0, dat$DiffWalking)
+dat$DiffWalking <- ifelse(dat$DiffWalking == "Yes", 1, dat$DiffWalking)
+
+dat$Sex <- ifelse(dat$Sex == "Male", 0, dat$Sex)
+dat$Sex <- ifelse(dat$Sex == "Female", 1, dat$Sex)
+
+dat$AgeCategory <- ifelse(dat$AgeCategory == "18-24", 0, dat$AgeCategory)
+dat$AgeCategory <- ifelse(dat$AgeCategory == "25-29", 1, dat$AgeCategory)
+dat$AgeCategory <- ifelse(dat$AgeCategory == "30-34", 2, dat$AgeCategory)
+dat$AgeCategory <- ifelse(dat$AgeCategory == "35-39", 3, dat$AgeCategory)
+dat$AgeCategory <- ifelse(dat$AgeCategory == "40-44", 4, dat$AgeCategory)
+dat$AgeCategory <- ifelse(dat$AgeCategory == "45-49", 5, dat$AgeCategory)
+dat$AgeCategory <- ifelse(dat$AgeCategory == "50-54", 6, dat$AgeCategory)
+dat$AgeCategory <- ifelse(dat$AgeCategory == "55-59", 7, dat$AgeCategory)
+dat$AgeCategory <- ifelse(dat$AgeCategory == "60-64", 8, dat$AgeCategory)
+dat$AgeCategory <- ifelse(dat$AgeCategory == "65-69", 9, dat$AgeCategory)
+dat$AgeCategory <- ifelse(dat$AgeCategory == "70-74", 10, dat$AgeCategory)
+dat$AgeCategory <- ifelse(dat$AgeCategory == "75-79", 11, dat$AgeCategory)
+dat$AgeCategory <- ifelse(dat$AgeCategory == "80 or older", 12, dat$AgeCategory)
+
+dat$Diabetic <- ifelse(dat$Diabetic == "No", 0, dat$Diabetic)
+dat$Diabetic <- ifelse(dat$Diabetic == "No, borderline diabetes" | dat$Diabetic == "Yes (during pregnancy)", 0.5, dat$Diabetic)
+dat$Diabetic <- ifelse(dat$Diabetic == "Yes", 1, dat$Diabetic)
+
+dat$PhysicalActivity <- ifelse(dat$PhysicalActivity == "No", 0, dat$PhysicalActivity)
+dat$PhysicalActivity <- ifelse(dat$PhysicalActivity == "Yes", 1, dat$PhysicalActivity)
+
+dat$GenHealth <- ifelse(dat$GenHealth == "Poor", 0, dat$GenHealth)
+dat$GenHealth <- ifelse(dat$GenHealth == "Fair", 0.25, dat$GenHealth)
+dat$GenHealth <- ifelse(dat$GenHealth == "Good", 0.5, dat$GenHealth)
+dat$GenHealth <- ifelse(dat$GenHealth == "Very good", 0.75, dat$GenHealth)
+dat$GenHealth <- ifelse(dat$GenHealth == "Excellent", 1, dat$GenHealth)
+
+dat$Asthma <- ifelse(dat$Asthma == "No", 0, dat$Asthma)
+dat$Asthma <- ifelse(dat$Asthma == "Yes", 1, dat$Asthma)
+
+dat$KidneyDisease <- ifelse(dat$KidneyDisease == "No", 0, dat$KidneyDisease)
+dat$KidneyDisease <- ifelse(dat$KidneyDisease == "Yes", 1, dat$KidneyDisease)
+
+dat$SkinCancer <- ifelse(dat$SkinCancer == "No", 0, dat$SkinCancer)
+dat$SkinCancer <- ifelse(dat$SkinCancer == "Yes", 1, dat$SkinCancer)
+```
+
+```{r cleaningData, echo-TRUE}
+cleanData <- dat
+cleanDataClustering <- subset(dat, select = c(HeartDisease, Smoking, PhysicalHealth, Sex, AgeCategory, GenHealth))
+clusteringTrainingSet <- cleanDataClustering %>% filter(row(cleanDataClustering) >= 1 & row(cleanDataClustering) <= 241374)
+clusteringTestingSet <- cleanDataClustering %>% filter(row(cleanDataClustering) >= 241375 & row(cleanDataClustering) <= 301717)
+
+classifyingTrainingSet <- cleanDataClassifying %>% filter(row(cleanDataClassifying) >= 1 & row(cleanDataClassifying) <= 241374)
+classifyingTestingSet <- cleanDataClassifying %>% filter(row(cleanDataClassifying) >= 241375 & row(cleanDataClassifying) <= 301717)
+```
+
+```{r dataCluster, echo=TRUE}
+set.seed(100)
+clusters <- kmeans(x=clusteringTrainingSet, centers=2, nstart = 10000)
+print(clusters)
+```
+
+```{r trainingMatrix, echo=TRUE}
+table(clusters$cluster, clusteringTrainingSet$HeartDisease)
+```
+
+```{r pullCenters, echo=TRUE}
+center1HeartDisease = clusters$centers[c("1"),c("HeartDisease")]
+center1BMI = clusters$centers[c("1"),c("BMI")]
+center1Smoking = clusters$centers[c("1"),c("Smoking")]
+center1AlcoholDrinking = clusters$centers[c("1"),c("AlcoholDrinking")]
+center1Stroke = clusters$centers[c("1"),c("Stroke")]
+center1PhysicalHealth = clusters$centers[c("1"),c("PhysicalHealth")]
+center1MentalHealth = clusters$centers[c("1"),c("MentalHealth")]
+center1DiffWalking = clusters$centers[c("1"),c("DiffWalking")]
+center1Sex = clusters$centers[c("1"),c("Sex")]
+center1AgeCategory = clusters$centers[c("1"),c("AgeCategory")]
+center1Diabetic = clusters$centers[c("1"),c("Diabetic")]
+center1PhysicalActivity = clusters$centers[c("1"),c("PhysicalActivity")]
+center1GenHealth = clusters$centers[c("1"),c("GenHealth")]
+center1SleepTime = clusters$centers[c("1"),c("SleepTime")]
+center1Asthma = clusters$centers[c("1"),c("Asthma")]
+center1KidneyDisease = clusters$centers[c("1"),c("KidneyDisease")]
+center1SkinCancer = clusters$centers[c("1"),c("SkinCancer")]
+
+
+center2HeartDisease = clusters$centers[c("2"),c("HeartDisease")]
+center2BMI = clusters$centers[c("2"),c("BMI")]
+center2Smoking = clusters$centers[c("2"),c("Smoking")]
+center2AlcoholDrinking = clusters$centers[c("2"),c("AlcoholDrinking")]
+center2Stroke = clusters$centers[c("2"),c("Stroke")]
+center2PhysicalHealth = clusters$centers[c("2"),c("PhysicalHealth")]
+center2MentalHealth = clusters$centers[c("2"),c("MentalHealth")]
+center2DiffWalking = clusters$centers[c("2"),c("DiffWalking")]
+center2Sex = clusters$centers[c("2"),c("Sex")]
+center2AgeCategory = clusters$centers[c("2"),c("AgeCategory")]
+center2Diabetic = clusters$centers[c("2"),c("Diabetic")]
+center2PhysicalActivity = clusters$centers[c("2"),c("PhysicalActivity")]
+center2GenHealth = clusters$centers[c("2"),c("GenHealth")]
+center2SleepTime = clusters$centers[c("2"),c("SleepTime")]
+center2Asthma = clusters$centers[c("2"),c("Asthma")]
+center2KidneyDisease = clusters$centers[c("2"),c("KidneyDisease")]
+center2SkinCancer = clusters$centers[c("2"),c("SkinCancer")]
+```
+
+```{r testingData, echo=TRUE}
+clusteringTestingSet$modelOutcome = ifelse(
+  (
+    (as.numeric(clusteringTestingSet$HeartDisease)-center1HeartDisease)^2+
+    (as.numeric(clusteringTestingSet$BMI)-center1BMI)^2+
+    (as.numeric(clusteringTestingSet$Smoking)-center1Smoking)^2+
+    (as.numeric(clusteringTestingSet$AlcoholDrinking)-center1AlcoholDrinking)^2+
+    (as.numeric(clusteringTestingSet$Stroke)-center1Stroke)^2+
+    (clusteringTestingSet$PhysicalHealth-center1PhysicalHealth)^2+
+    (clusteringTestingSet$MentalHealth-center1MentalHealth)^2+
+    (as.numeric(clusteringTestingSet$DiffWalking)-center1DiffWalking)^2+
+    (as.numeric(clusteringTestingSet$Sex)-center1Sex)^2+
+    (as.numeric(clusteringTestingSet$AgeCategory)-center1AgeCategory)^2+
+    (as.numeric(clusteringTestingSet$Diabetic)-center1Diabetic)^2+
+    (as.numeric(clusteringTestingSet$PhysicalActivity)-center1PhysicalActivity)^2+
+    (as.numeric(clusteringTestingSet$GenHealth)-center1GenHealth)^2+
+    (clusteringTestingSet$SleepTime-center1SleepTime)^2+
+    (as.numeric(clusteringTestingSet$Asthma)-center1Asthma)^2+
+    (as.numeric(clusteringTestingSet$KidneyDisease)-center1KidneyDisease)^2+
+    (as.numeric(clusteringTestingSet$SkinCancer)-center1SkinCancer)^2
+  ) < (
+    (as.numeric(clusteringTestingSet$HeartDisease)-center2HeartDisease)^2+
+    (as.numeric(clusteringTestingSet$BMI)-center2BMI)^2+
+    (as.numeric(clusteringTestingSet$Smoking)-center2Smoking)^2+
+    (as.numeric(clusteringTestingSet$AlcoholDrinking)-center2AlcoholDrinking)^2+
+    (as.numeric(clusteringTestingSet$Stroke)-center2Stroke)^2+
+    (clusteringTestingSet$PhysicalHealth-center2PhysicalHealth)^2+
+    (clusteringTestingSet$MentalHealth-center2MentalHealth)^2+
+    (as.numeric(clusteringTestingSet$DiffWalking)-center2DiffWalking)^2+
+    (as.numeric(clusteringTestingSet$Sex)-center2Sex)^2+
+    (as.numeric(clusteringTestingSet$AgeCategory)-center2AgeCategory)^2+
+    (as.numeric(clusteringTestingSet$Diabetic)-center2Diabetic)^2+
+    (as.numeric(clusteringTestingSet$PhysicalActivity)-center2PhysicalActivity)^2+
+    (as.numeric(clusteringTestingSet$GenHealth)-center2GenHealth)^2+
+    (clusteringTestingSet$SleepTime-center2SleepTime)^2+
+    (as.numeric(clusteringTestingSet$Asthma)-center2Asthma)^2+
+    (as.numeric(clusteringTestingSet$KidneyDisease)-center2KidneyDisease)^2+
+    (as.numeric(clusteringTestingSet$SkinCancer)-center2SkinCancer)^2
+  ), "Model 0", "Model 1")
+```
+
+```{r testingMatrix, echo=TRUE}
+table(clusteringTestingSet$modelOutcome, clusteringTestingSet$HeartDisease)
+```
+
+```{r dataTree, echo=TRUE}
+modelTree <- rpart(HeartDisease ~., data=classifyingTrainingSet, method='class', cp=0.0005)
+prp(modelTree)
+```
+
+```{r trainingTreeMatrix, echo=TRUE}
+modelTrainingPredictions = predict(modelTree, data=classifyingTrainingSet, type='class')
+table(classifyingTrainingSet$HeartDisease, modelTrainingPredictions)
+```
+
+```{r testingTreeMatrix, echo=TRUE}
+modelTestingPredictions = predict(modelTree, newdata=classifyingTestingSet, type='class')
+table(classifyingTestingSet$HeartDisease, modelTestingPredictions)
+```

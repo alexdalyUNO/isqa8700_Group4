@@ -88,21 +88,17 @@ dat$SkinCancer <- ifelse(dat$SkinCancer == "Yes", 1, dat$SkinCancer)
 
 ```{r cleaningData, echo-TRUE}
 cleanData <- dat
-cleanDataClustering <- subset(dat, select = -c(Race))
-#cleanDataClassifying <- dat
-clusteringTrainingSet <- cleanDataClustering %>% filter(row(cleanDataClustering) >= 1 & row(cleanDataClustering) <= 200000)
-clusteringTestingSet <- cleanDataClustering %>% filter(row(cleanDataClustering) >= 200001 & row(cleanDataClustering) <= 301717)
-#classifyingTrainingSet <- cleanDataClassifying %>% filter(row(cleanDataClassifying) >= 1 & row(cleanDataClassifying) <= 150858)
-#classifyingTestingSet <- cleanDataClassifying %>% filter(row(cleanDataClassifying) >= 150859 & row(cleanDataClassifying) <= 301716)
+cleanDataClustering <- subset(dat, select = c(HeartDisease, Smoking, PhysicalHealth, Sex, AgeCategory, GenHealth))
+clusteringTrainingSet <- cleanDataClustering %>% filter(row(cleanDataClustering) >= 1 & row(cleanDataClustering) <= 241374)
+clusteringTestingSet <- cleanDataClustering %>% filter(row(cleanDataClustering) >= 241375 & row(cleanDataClustering) <= 301717)
 
-classifyingTrainingSet <- cleanDataClassifying %>% filter(row(cleanDataClassifying) >= 1 & row(cleanDataClassifying) <= 200000)
-classifyingTestingSet <- cleanDataClassifying %>% filter(row(cleanDataClassifying) >= 200001 & row(cleanDataClassifying) <= 301717)
+classifyingTrainingSet <- cleanDataClassifying %>% filter(row(cleanDataClassifying) >= 1 & row(cleanDataClassifying) <= 241374)
+classifyingTestingSet <- cleanDataClassifying %>% filter(row(cleanDataClassifying) >= 241375 & row(cleanDataClassifying) <= 301717)
 ```
 
 ```{r dataCluster, echo=TRUE}
-#trainingInitialCenters <- clusteringTrainingSet[c(20, 46), ]
-set.seed(1)
-clusters <- kmeans(x=clusteringTrainingSet, centers=2, nstart = 5000)
+set.seed(100)
+clusters <- kmeans(x=clusteringTrainingSet, centers=2, nstart = 10000)
 print(clusters)
 ```
 
@@ -195,7 +191,7 @@ table(clusteringTestingSet$modelOutcome, clusteringTestingSet$HeartDisease)
 ```
 
 ```{r dataTree, echo=TRUE}
-modelTree <- rpart(HeartDisease ~., data=classifyingTrainingSet, method='class', cp=0.001)
+modelTree <- rpart(HeartDisease ~., data=classifyingTrainingSet, method='class', cp=0.0005)
 prp(modelTree)
 ```
 

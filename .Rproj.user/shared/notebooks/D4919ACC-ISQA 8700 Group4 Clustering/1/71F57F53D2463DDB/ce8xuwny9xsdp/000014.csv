@@ -1,0 +1,2 @@
+"0","modelTree <- rpart(HeartDisease ~., data=classifyingTrainingSet, method='class', cp=0.0005)"
+"0","prp(modelTree)"
