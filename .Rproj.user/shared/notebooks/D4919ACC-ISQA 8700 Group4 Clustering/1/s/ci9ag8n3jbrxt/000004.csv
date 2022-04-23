@@ -1,7 +1,0 @@
-"0","cleanData <- dat"
-"0","cleanDataClustering <- subset(dat, select = c(HeartDisease, Smoking, PhysicalHealth, Sex, AgeCategory, GenHealth))"
-"0","clusteringTrainingSet <- cleanDataClustering %>% filter(row(cleanDataClustering) >= 1 & row(cleanDataClustering) <= 241374)"
-"0","clusteringTestingSet <- cleanDataClustering %>% filter(row(cleanDataClustering) >= 241375 & row(cleanDataClustering) <= 301717)"
-"0",""
-"0","classifyingTrainingSet <- cleanDataClassifying %>% filter(row(cleanDataClassifying) >= 1 & row(cleanDataClassifying) <= 241374)"
-"0","classifyingTestingSet <- cleanDataClassifying %>% filter(row(cleanDataClassifying) >= 241375 & row(cleanDataClassifying) <= 301717)"
